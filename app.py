@@ -49,6 +49,55 @@ NAV_ITEMS = [
     "CFO Summary",
 ]
 PLANNING_TABS = {"Forecast Builder", "Scenario Analysis", "CFO Summary"}
+DISPLAY_LABELS = {
+    "year": "Year",
+    "revenue": "Revenue ($M)",
+    "revenue_growth": "Revenue Growth",
+    "cogs": "COGS ($M)",
+    "gross_profit": "Gross Profit ($M)",
+    "gross_margin": "Gross Margin",
+    "sga": "SG&A ($M)",
+    "sga_pct": "SG&A % Revenue",
+    "operating_income": "Operating Income ($M)",
+    "operating_margin": "Operating Margin",
+    "interest_expense": "Interest Expense ($M)",
+    "pretax_income": "Pretax Income ($M)",
+    "tax_expense": "Tax Expense ($M)",
+    "net_income": "Net Income ($M)",
+    "net_margin": "Net Margin",
+    "cash": "Cash ($M)",
+    "accounts_receivable": "Accounts Receivable ($M)",
+    "inventory": "Inventory ($M)",
+    "current_assets": "Current Assets ($M)",
+    "total_assets": "Total Assets ($M)",
+    "accounts_payable": "Accounts Payable ($M)",
+    "current_liabilities": "Current Liabilities ($M)",
+    "total_debt": "Total Debt ($M)",
+    "total_liabilities": "Total Liabilities ($M)",
+    "shareholders_equity": "Shareholders' Equity ($M)",
+    "employee_count": "Employees",
+    "revenue_per_employee": "Revenue / Employee ($K)",
+    "depreciation": "Depreciation ($M)",
+    "working_capital_change": "Working Capital Change ($M)",
+    "cash_from_operations": "Cash From Operations ($M)",
+    "capex": "Capex ($M)",
+    "free_cash_flow": "Free Cash Flow ($M)",
+    "fcf_margin": "FCF Margin",
+    "capex_pct": "Capex % Revenue",
+    "actual": "Actual ($M)",
+    "budget": "Budget ($M)",
+    "variance": "Variance ($M)",
+    "variance_pct": "Variance %",
+    "scenario": "Scenario",
+}
+
+
+def display_columns(df: pd.DataFrame) -> pd.DataFrame:
+    return df.rename(columns=DISPLAY_LABELS)
+
+
+def display_percent_cols(columns: list[str]) -> list[str]:
+    return [DISPLAY_LABELS.get(column, column) for column in columns]
 
 
 st.set_page_config(
@@ -198,13 +247,13 @@ scenario_data = run_scenarios(
 if active_tab == "Executive Dashboard":
     st.subheader(f"{company} Operating Review")
     c1, c2, c3, c4 = st.columns(4)
-    c1.markdown(kpi_card("Revenue", money(snapshot["revenue"]), f"YoY growth {pct(snapshot['revenue_growth'])}"), unsafe_allow_html=True)
+    c1.markdown(kpi_card("Revenue ($M)", money(snapshot["revenue"]), f"YoY growth {pct(snapshot['revenue_growth'])}"), unsafe_allow_html=True)
     c2.markdown(kpi_card("Gross Margin", pct(snapshot["gross_margin"]), f"Latest fiscal year {snapshot['year']}"), unsafe_allow_html=True)
     c3.markdown(kpi_card("Operating Margin", pct(snapshot["operating_margin"]), "Profitability after SG&A"), unsafe_allow_html=True)
-    c4.markdown(kpi_card("Free Cash Flow", money(snapshot["free_cash_flow"]), f"FCF margin {pct(snapshot['fcf_margin'])}"), unsafe_allow_html=True)
+    c4.markdown(kpi_card("Free Cash Flow ($M)", money(snapshot["free_cash_flow"]), f"FCF margin {pct(snapshot['fcf_margin'])}"), unsafe_allow_html=True)
 
     c5, c6, c7 = st.columns(3)
-    c5.markdown(kpi_card("Net Income", money(snapshot["net_income"]), f"Net margin {pct(snapshot['net_income'] / snapshot['revenue'])}"), unsafe_allow_html=True)
+    c5.markdown(kpi_card("Net Income ($M)", money(snapshot["net_income"]), f"Net margin {pct(snapshot['net_income'] / snapshot['revenue'])}"), unsafe_allow_html=True)
     c6.markdown(kpi_card("SG&A % Revenue", pct(income_metrics.iloc[-1]["sga_pct"]), "Operating expense intensity"), unsafe_allow_html=True)
     c7.markdown(kpi_card("Capex % Revenue", pct(cash_flow_metrics.iloc[-1]["capex_pct"]), "Reinvestment rate"), unsafe_allow_html=True)
 
@@ -245,12 +294,13 @@ if active_tab == "Historical Financials":
             "net_income",
             "net_margin",
         ]
-    ].rename(columns=str.title)
+    ].pipe(display_columns)
     with hist_tabs[0]:
+        st.caption("Income statement dollar values are shown in millions of dollars ($M).")
         st.dataframe(
             format_financial_table(
                 income_table,
-                percent_cols=["Revenue_Growth", "Gross_Margin", "Sga_Pct", "Operating_Margin", "Net_Margin"],
+                percent_cols=display_percent_cols(["revenue_growth", "gross_margin", "sga_pct", "operating_margin", "net_margin"]),
             ),
             width='stretch',
             hide_index=True,
@@ -258,13 +308,15 @@ if active_tab == "Historical Financials":
         st.plotly_chart(line_chart(income_metrics, "year", ["revenue", "gross_profit", "operating_income", "net_income"], "Income Statement Trend"), use_container_width=True)
 
     with hist_tabs[1]:
-        balance_table = balance_metrics.drop(columns=["company"], errors="ignore")
+        st.caption("Balance sheet dollar values are shown in millions of dollars ($M).")
+        balance_table = balance_metrics.drop(columns=["company"], errors="ignore").pipe(display_columns)
         st.dataframe(format_financial_table(balance_table), width='stretch', hide_index=True)
         st.plotly_chart(line_chart(balance_metrics, "year", ["cash", "inventory", "total_debt", "shareholders_equity"], "Balance Sheet Trend"), use_container_width=True)
 
     with hist_tabs[2]:
-        cf_table = cash_flow_metrics.drop(columns=["company"], errors="ignore")
-        st.dataframe(format_financial_table(cf_table, percent_cols=["fcf_margin", "capex_pct"]), width='stretch', hide_index=True)
+        st.caption("Cash flow dollar values are shown in millions of dollars ($M).")
+        cf_table = cash_flow_metrics.drop(columns=["company"], errors="ignore").pipe(display_columns)
+        st.dataframe(format_financial_table(cf_table, percent_cols=display_percent_cols(["fcf_margin", "capex_pct"])), width='stretch', hide_index=True)
         st.plotly_chart(line_chart(cash_flow_metrics, "year", ["cash_from_operations", "capex", "free_cash_flow"], "Cash Flow Trend"), use_container_width=True)
 
     with hist_tabs[3]:
@@ -323,8 +375,13 @@ if active_tab == "Expense & Margins":
     fig.update_layout(template="plotly_white", yaxis_tickformat=".1%", legend_title_text="", margin=dict(l=20, r=20, t=58, b=20))
     exp_col2.plotly_chart(fig, use_container_width=True)
 
-    expense_table = income_metrics[["year", "revenue", "cogs", "gross_profit", "sga", "operating_income", "gross_margin", "sga_pct", "operating_margin"]]
-    st.dataframe(format_financial_table(expense_table, percent_cols=["gross_margin", "sga_pct", "operating_margin"]), width='stretch', hide_index=True)
+    expense_table = income_metrics[["year", "revenue", "cogs", "gross_profit", "sga", "operating_income", "gross_margin", "sga_pct", "operating_margin"]].pipe(display_columns)
+    st.caption("Expense and income dollar values are shown in millions of dollars ($M).")
+    st.dataframe(
+        format_financial_table(expense_table, percent_cols=display_percent_cols(["gross_margin", "sga_pct", "operating_margin"])),
+        width='stretch',
+        hide_index=True,
+    )
 
 
 if active_tab == "Budget vs Actual":
@@ -333,23 +390,24 @@ if active_tab == "Budget vs Actual":
     variance_display = variance_df.rename(
         columns={
             "metric": "Metric",
-            "actual": "Actual",
-            "budget": "Budget",
-            "variance": "Variance",
+            "actual": "Actual ($M)",
+            "budget": "Budget ($M)",
+            "variance": "Variance ($M)",
             "variance_pct": "Variance %",
             "status": "Status",
         }
     )
+    st.caption("Budget, actual, and variance dollar values are shown in millions of dollars ($M).")
     st.dataframe(
         variance_display.style.format(
-            {"Actual": "${:,.0f}", "Budget": "${:,.0f}", "Variance": "${:,.0f}", "Variance %": "{:.1%}"}
+            {"Actual ($M)": "${:,.0f}", "Budget ($M)": "${:,.0f}", "Variance ($M)": "${:,.0f}", "Variance %": "{:.1%}"}
         ).map(lambda value: f"color: {GOOD}; font-weight: 700" if value == "Favorable" else f"color: {BAD}; font-weight: 700", subset=["Status"]),
         width='stretch',
         hide_index=True,
     )
 
-    var_fig = px.bar(variance_display, x="Metric", y="Variance", color="Status", title=f"{latest_year} Budget Variance", text_auto=".2s", color_discrete_map={"Favorable": GOOD, "Unfavorable": BAD})
-    var_fig.update_layout(template="plotly_white", margin=dict(l=20, r=20, t=58, b=20), yaxis_title="$M", xaxis_title="")
+    var_fig = px.bar(variance_display, x="Metric", y="Variance ($M)", color="Status", title=f"{latest_year} Budget Variance", text_auto=".2s", color_discrete_map={"Favorable": GOOD, "Unfavorable": BAD})
+    var_fig.update_layout(template="plotly_white", margin=dict(l=20, r=20, t=58, b=20), yaxis_title="Dollars ($M)", xaxis_title="")
     st.plotly_chart(var_fig, use_container_width=True)
 
 
@@ -370,9 +428,10 @@ if active_tab == "Forecast Builder":
             "net_margin",
             "fcf_margin",
         ]
-    ]
+    ].pipe(display_columns)
+    st.caption("Forecast dollar values are shown in millions of dollars ($M).")
     st.dataframe(
-        format_financial_table(forecast_table, percent_cols=["gross_margin", "operating_margin", "net_margin", "fcf_margin"]),
+        format_financial_table(forecast_table, percent_cols=display_percent_cols(["gross_margin", "operating_margin", "net_margin", "fcf_margin"])),
         width='stretch',
         hide_index=True,
     )
@@ -386,7 +445,7 @@ if active_tab == "Forecast Builder":
     )
     fc_col1, fc_col2 = st.columns(2)
     fig = px.line(actual_forecast, x="year", y="revenue", color="type", markers=True, title="Actuals vs Forecast Revenue")
-    fig.update_layout(template="plotly_white", legend_title_text="", margin=dict(l=20, r=20, t=58, b=20), yaxis_title="$M", xaxis_title="")
+    fig.update_layout(template="plotly_white", legend_title_text="", margin=dict(l=20, r=20, t=58, b=20), yaxis_title="Dollars ($M)", xaxis_title="")
     fc_col1.plotly_chart(fig, use_container_width=True)
 
     fcf_actual_forecast = pd.concat(
@@ -397,7 +456,7 @@ if active_tab == "Forecast Builder":
         ignore_index=True,
     )
     fig2 = px.line(fcf_actual_forecast, x="year", y="free_cash_flow", color="type", markers=True, title="Actuals vs Forecast Free Cash Flow")
-    fig2.update_layout(template="plotly_white", legend_title_text="", margin=dict(l=20, r=20, t=58, b=20), yaxis_title="$M", xaxis_title="")
+    fig2.update_layout(template="plotly_white", legend_title_text="", margin=dict(l=20, r=20, t=58, b=20), yaxis_title="Dollars ($M)", xaxis_title="")
     fc_col2.plotly_chart(fig2, use_container_width=True)
 
 
@@ -406,9 +465,10 @@ if active_tab == "Scenario Analysis":
     scenario_final = scenario_data[scenario_data["year"] == scenario_data["year"].max()].copy()
     scenario_table = scenario_final[
         ["scenario", "revenue", "operating_income", "net_income", "free_cash_flow", "operating_margin", "net_margin", "fcf_margin"]
-    ].rename(columns={"scenario": "Scenario"})
+    ].pipe(display_columns)
+    st.caption("Scenario dollar values are shown in millions of dollars ($M).")
     st.dataframe(
-        format_financial_table(scenario_table, percent_cols=["operating_margin", "net_margin", "fcf_margin"]),
+        format_financial_table(scenario_table, percent_cols=display_percent_cols(["operating_margin", "net_margin", "fcf_margin"])),
         width='stretch',
         hide_index=True,
     )
@@ -423,6 +483,7 @@ if active_tab == "Scenario Analysis":
     scenario_metric["Metric"] = scenario_metric["Metric"].str.replace("_", " ").str.title()
     fig = px.line(scenario_metric, x="year", y="Value", color="scenario", facet_col="Metric", facet_col_wrap=2, markers=True, title="Scenario Outcomes")
     fig.update_layout(template="plotly_white", legend_title_text="", margin=dict(l=20, r=20, t=58, b=20))
+    fig.update_yaxes(title_text="Dollars ($M)")
     sc_col1.plotly_chart(fig, use_container_width=True)
 
     margin_scenarios = scenario_data.melt(

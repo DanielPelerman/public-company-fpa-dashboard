@@ -209,15 +209,22 @@ def format_financial_table(df: pd.DataFrame, percent_cols: Optional[list[str]] =
             return "n/a"
         return f"(${abs(value):,.0f})" if value < 0 else f"${value:,.0f}"
 
+    def number_fmt(value):
+        if pd.isna(value):
+            return "n/a"
+        return f"{value:,.1f}" if abs(value) < 100 else f"{value:,.0f}"
+
     for col in df.columns:
         if col in percent_cols:
             formatters[col] = "{:.1%}"
-        elif pd.api.types.is_numeric_dtype(df[col]) and col.lower() != "year":
+        elif pd.api.types.is_numeric_dtype(df[col]) and ("($M)" in col or "($K)" in col):
             formatters[col] = money_fmt
+        elif pd.api.types.is_numeric_dtype(df[col]) and col.lower() != "year":
+            formatters[col] = number_fmt
     return df.style.format(formatters)
 
 
-def line_chart(df: pd.DataFrame, x: str, y: Union[str, list[str]], title: str, y_title: str = "$M"):
+def line_chart(df: pd.DataFrame, x: str, y: Union[str, list[str]], title: str, y_title: str = "Dollars ($M)"):
     fig = px.line(df, x=x, y=y, markers=True, title=title)
     fig.update_layout(
         template="plotly_white",
@@ -234,7 +241,7 @@ def line_chart(df: pd.DataFrame, x: str, y: Union[str, list[str]], title: str, y
     return fig
 
 
-def bar_chart(df: pd.DataFrame, x: str, y: str, color: Optional[str], title: str, y_title: str = "$M"):
+def bar_chart(df: pd.DataFrame, x: str, y: str, color: Optional[str], title: str, y_title: str = "Dollars ($M)"):
     fig = px.bar(df, x=x, y=y, color=color, title=title, text_auto=".2s")
     fig.update_layout(
         template="plotly_white",
