@@ -1,0 +1,46 @@
+company,year,category_type,segment,revenue
+Nike,2021,Geography,North America,17863
+Nike,2021,Geography,EMEA,11456
+Nike,2021,Geography,Greater China,8290
+Nike,2021,Geography,APLA,6929
+Nike,2022,Geography,North America,18793
+Nike,2022,Geography,EMEA,12479
+Nike,2022,Geography,Greater China,7547
+Nike,2022,Geography,APLA,7891
+Nike,2023,Geography,North America,21716
+Nike,2023,Geography,EMEA,13418
+Nike,2023,Geography,Greater China,7248
+Nike,2023,Geography,APLA,8835
+Nike,2024,Geography,North America,21634
+Nike,2024,Geography,EMEA,13565
+Nike,2024,Geography,Greater China,7545
+Nike,2024,Geography,APLA,8618
+Nike,2025,Geography,North America,19020
+Nike,2025,Geography,EMEA,12410
+Nike,2025,Geography,Greater China,6910
+Nike,2025,Geography,APLA,7860
+Nike,2021,Product,Footwear,28021
+Nike,2021,Product,Apparel,13567
+Nike,2021,Product,Equipment,2950
+Nike,2022,Product,Footwear,29780
+Nike,2022,Product,Apparel,13910
+Nike,2022,Product,Equipment,3020
+Nike,2023,Product,Footwear,33410
+Nike,2023,Product,Apparel,14617
+Nike,2023,Product,Equipment,3190
+Nike,2024,Product,Footwear,33780
+Nike,2024,Product,Apparel,14502
+Nike,2024,Product,Equipment,3080
+Nike,2025,Product,Footwear,30060
+Nike,2025,Product,Apparel,13260
+Nike,2025,Product,Equipment,2880
+Nike,2021,Channel,Direct-to-Consumer,16924
+Nike,2021,Channel,Wholesale,27614
+Nike,2022,Channel,Direct-to-Consumer,18730
+Nike,2022,Channel,Wholesale,27980
+Nike,2023,Channel,Direct-to-Consumer,21490
+Nike,2023,Channel,Wholesale,29727
+Nike,2024,Channel,Direct-to-Consumer,22060
+Nike,2024,Channel,Wholesale,29302
+Nike,2025,Channel,Direct-to-Consumer,20500
+Nike,2025,Channel,Wholesale,25700

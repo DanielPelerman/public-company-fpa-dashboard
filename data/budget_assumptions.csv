@@ -1,0 +1,5 @@
+company,year,revenue_growth,gross_margin,sga_pct,tax_rate,capex_pct,depreciation_pct,working_capital_pct
+Nike,2025,-0.06,0.420,0.335,0.230,0.018,0.015,-0.006
+Nike,2026,0.035,0.425,0.330,0.225,0.018,0.015,0.002
+Nike,2027,0.045,0.432,0.322,0.225,0.017,0.015,0.001
+Nike,2028,0.050,0.438,0.315,0.225,0.017,0.014,0.001

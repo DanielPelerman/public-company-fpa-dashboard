@@ -1,0 +1,6 @@
+company,year,net_income,depreciation,working_capital_change,cash_from_operations,capex,free_cash_flow,share_repurchases,dividends
+Nike,2021,4729,745,-632,5987,695,5292,650,1638
+Nike,2022,4756,717,-1280,5488,758,4730,4050,1805
+Nike,2023,5070,703,330,5841,969,4872,5650,1987
+Nike,2024,4700,744,565,6817,812,6005,4740,2175
+Nike,2025,2493,735,-390,3830,900,2930,2200,2250
