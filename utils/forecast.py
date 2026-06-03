@@ -89,11 +89,10 @@ def scenario_assumptions(custom: dict) -> dict[str, dict]:
     }
 
 
-def run_scenarios(actual_income: pd.DataFrame, custom: dict) -> pd.DataFrame:
+def run_scenarios(actual_income: pd.DataFrame, custom: dict, years: int = 3) -> pd.DataFrame:
     outputs = []
     for scenario, assumptions in scenario_assumptions(custom).items():
-        forecast = build_forecast(actual_income, **assumptions)
+        forecast = build_forecast(actual_income, **assumptions, years=years)
         forecast["scenario"] = scenario
         outputs.append(forecast)
     return pd.concat(outputs, ignore_index=True)
-

@@ -157,9 +157,11 @@ tax_rate = float(defaults["tax_rate"])
 capex_pct = float(defaults["capex_pct"])
 depreciation_pct = float(defaults["depreciation_pct"])
 working_capital_pct = float(defaults["working_capital_pct"])
+forecast_years = 3
 
 
 ASSUMPTION_CONTROLS = {
+    "assumption_forecast_years": forecast_years,
     "assumption_revenue_growth": float(defaults["revenue_growth"] * 100),
     "assumption_gross_margin": float(defaults["gross_margin"] * 100),
     "assumption_sga_pct": float(defaults["sga_pct"] * 100),
@@ -189,6 +191,18 @@ if active_tab in PLANNING_TABS:
             st.caption("Small ticks on each slider show the original planning values while you test upside or downside cases.")
         with button_col:
             st.button("Reset assumptions", on_click=reset_assumptions, use_container_width=True)
+        horizon_col, horizon_spacer = st.columns([1, 3])
+        with horizon_col:
+            forecast_years = st.slider(
+                "Forecast horizon",
+                min_value=1,
+                max_value=10,
+                value=ASSUMPTION_CONTROLS["assumption_forecast_years"],
+                step=1,
+                key="assumption_forecast_years",
+                help="Number of future fiscal years to forecast.",
+            )
+            st.caption(f"Forecasting FY{latest_year + 1}-FY{latest_year + forecast_years}")
         row_1 = st.columns(4)
         row_2 = st.columns(3)
         with row_1[0]:
@@ -229,6 +243,7 @@ forecast = build_forecast(
     capex_pct=capex_pct,
     depreciation_pct=depreciation_pct,
     working_capital_pct=working_capital_pct,
+    years=forecast_years,
 )
 scenario_data = run_scenarios(
     income,
@@ -241,6 +256,7 @@ scenario_data = run_scenarios(
         "depreciation_pct": depreciation_pct,
         "working_capital_pct": working_capital_pct,
     },
+    years=forecast_years,
 )
 
 
@@ -413,6 +429,7 @@ if active_tab == "Budget vs Actual":
 
 if active_tab == "Forecast Builder":
     st.subheader("Forecast Builder")
+    st.caption(f"Showing a {forecast_years}-year forecast through FY{latest_year + forecast_years}.")
     forecast_table = forecast[
         [
             "year",
