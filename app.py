@@ -296,9 +296,10 @@ if active_tab == "Revenue Drivers":
     segment_growth = segment_view.sort_values(["segment", "year"]).copy()
     segment_growth["growth"] = segment_growth.groupby("segment")["revenue"].pct_change()
     growth_table = segment_growth[segment_growth["year"] == latest_year][["segment", "revenue", "growth"]].rename(
-        columns={"segment": "Segment", "revenue": "Revenue", "growth": "YoY Growth"}
+        columns={"segment": "Segment", "revenue": "Revenue ($M)", "growth": "YoY Growth"}
     )
-    st.dataframe(growth_table.style.format({"Revenue": "${:,.0f}", "YoY Growth": "{:.1%}"}), width='stretch', hide_index=True)
+    st.caption("Revenue values in the table are shown in millions of dollars ($M).")
+    st.dataframe(growth_table.style.format({"Revenue ($M)": "${:,.0f}", "YoY Growth": "{:.1%}"}), width='stretch', hide_index=True)
 
 
 if active_tab == "Expense & Margins":
