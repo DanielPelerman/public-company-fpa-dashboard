@@ -1,4 +1,4 @@
-# Public Company FP&A Dashboard
+# Nike FP&A Dashboard
 
 A professional Streamlit web app that simulates an FP&A operating review and forecasting process for a public company. The first version uses illustrative Nike-style sample data so the dashboard can run immediately.
 

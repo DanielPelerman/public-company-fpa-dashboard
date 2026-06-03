@@ -52,7 +52,7 @@ PLANNING_TABS = {"Forecast Builder", "Scenario Analysis", "CFO Summary"}
 
 
 st.set_page_config(
-    page_title="Public Company FP&A Dashboard",
+    page_title="Nike FP&A Dashboard",
     page_icon="📊",
     layout="wide",
     initial_sidebar_state="collapsed",
@@ -65,8 +65,8 @@ income_raw = data["income_statement"]
 companies = sorted(income_raw["company"].unique()) if not income_raw.empty else ["Nike"]
 
 page_header(
-    "Public Company FP&A Dashboard",
-    "Operating review, variance analysis, forecasting, scenario planning, and CFO-ready commentary for a public-company finance team.",
+    "Nike FP&A Dashboard",
+    "Operating review, variance analysis, forecasting, scenario planning, and CFO-ready commentary for a corporate finance team.",
 )
 active_tab = st.pills("Dashboard section", NAV_ITEMS, default=NAV_ITEMS[0], label_visibility="collapsed")
 
