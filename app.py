@@ -1,4 +1,5 @@
 from pathlib import Path
+import importlib
 
 import pandas as pd
 import plotly.express as px
@@ -31,7 +32,14 @@ from utils.finance import (
     common_size_income_statement,
     latest_snapshot,
 )
-from utils.forecast import FORECAST_METHODS, build_forecast, forecast_method_summary, revenue_forecast, run_scenarios
+import utils.forecast as forecast_utils
+
+forecast_utils = importlib.reload(forecast_utils)
+FORECAST_METHODS = forecast_utils.FORECAST_METHODS
+build_forecast = forecast_utils.build_forecast
+forecast_method_summary = forecast_utils.forecast_method_summary
+revenue_forecast = forecast_utils.revenue_forecast
+run_scenarios = forecast_utils.run_scenarios
 
 
 BASE_DIR = Path(__file__).parent
