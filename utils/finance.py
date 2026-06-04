@@ -1,14 +1,21 @@
 import numpy as np
 import pandas as pd
+from typing import Optional
 
 
-def add_income_statement_metrics(df: pd.DataFrame) -> pd.DataFrame:
+def add_income_statement_metrics(df: pd.DataFrame, cash_flow_df: Optional[pd.DataFrame] = None) -> pd.DataFrame:
     if df.empty:
         return df
 
     out = df.sort_values("year").copy()
+    if cash_flow_df is not None and not cash_flow_df.empty and "depreciation" in cash_flow_df.columns:
+        depreciation = cash_flow_df[["year", "depreciation"]].copy()
+        out = out.merge(depreciation, on="year", how="left")
+
     out["revenue_growth"] = out["revenue"].pct_change()
     out["gross_margin"] = out["gross_profit"] / out["revenue"]
+    out["ebitda"] = out["operating_income"] + out.get("depreciation", pd.NA)
+    out["ebitda_margin"] = out["ebitda"] / out["revenue"]
     out["sga_pct"] = out["sga"] / out["revenue"]
     out["operating_margin"] = out["operating_income"] / out["revenue"]
     out["net_margin"] = out["net_income"] / out["revenue"]
@@ -75,6 +82,8 @@ def calculate_budget_variance(actual_df: pd.DataFrame, budget_df: pd.DataFrame, 
     gross_profit_budget = revenue_budget * budget["gross_margin"]
     sga_budget = revenue_budget * budget["sga_pct"]
     operating_income_budget = gross_profit_budget - sga_budget
+    depreciation_budget = revenue_budget * budget["depreciation_pct"]
+    ebitda_budget = operating_income_budget + depreciation_budget
     tax_budget = max(operating_income_budget - actual.get("interest_expense", 0), 0) * budget["tax_rate"]
     net_income_budget = operating_income_budget - actual.get("interest_expense", 0) - tax_budget
     fcf_budget = (
@@ -85,10 +94,13 @@ def calculate_budget_variance(actual_df: pd.DataFrame, budget_df: pd.DataFrame, 
     )
 
     actual_fcf = cash_flow_df.loc[cash_flow_df["year"] == latest_year, "free_cash_flow"].iloc[0]
+    actual_depreciation = cash_flow_df.loc[cash_flow_df["year"] == latest_year, "depreciation"].iloc[0]
+    actual_ebitda = actual["operating_income"] + actual_depreciation
 
     metrics = [
         ("Revenue", actual["revenue"], revenue_budget, "higher"),
         ("Gross Profit", actual["gross_profit"], gross_profit_budget, "higher"),
+        ("EBITDA", actual_ebitda, ebitda_budget, "higher"),
         ("SG&A", actual["sga"], sga_budget, "lower"),
         ("Operating Income", actual["operating_income"], operating_income_budget, "higher"),
         ("Net Income", actual["net_income"], net_income_budget, "higher"),
@@ -108,6 +120,7 @@ def calculate_budget_variance(actual_df: pd.DataFrame, budget_df: pd.DataFrame, 
                 "variance": variance,
                 "variance_pct": variance_pct,
                 "status": "Favorable" if favorable else "Unfavorable",
+                "favorability_logic": "Higher is favorable" if favorable_direction == "higher" else "Lower is favorable",
             }
         )
 
@@ -118,11 +131,12 @@ def latest_snapshot(income_df: pd.DataFrame, cash_flow_df: pd.DataFrame) -> dict
     if income_df.empty:
         return {}
 
-    income = add_income_statement_metrics(income_df)
+    income = add_income_statement_metrics(income_df, cash_flow_df)
     cash_flow = add_cash_flow_metrics(cash_flow_df, income_df)
     latest_year = int(income["year"].max())
     row = income.loc[income["year"] == latest_year].iloc[0]
     fcf = cash_flow.loc[cash_flow["year"] == latest_year, "free_cash_flow"].iloc[0]
+    operating_cash_flow = cash_flow.loc[cash_flow["year"] == latest_year, "cash_from_operations"].iloc[0]
     fcf_margin = fcf / row["revenue"]
 
     return {
@@ -130,9 +144,11 @@ def latest_snapshot(income_df: pd.DataFrame, cash_flow_df: pd.DataFrame) -> dict
         "revenue": row["revenue"],
         "revenue_growth": row["revenue_growth"],
         "gross_margin": row["gross_margin"],
+        "ebitda": row["ebitda"],
+        "ebitda_margin": row["ebitda_margin"],
         "operating_margin": row["operating_margin"],
         "net_income": row["net_income"],
+        "cash_from_operations": operating_cash_flow,
         "free_cash_flow": fcf,
         "fcf_margin": fcf_margin,
     }
-

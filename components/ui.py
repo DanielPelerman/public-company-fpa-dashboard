@@ -111,40 +111,6 @@ def apply_theme() -> None:
             color: var(--accent);
             border-color: var(--accent);
         }
-        .baseline-overlay {
-            position: relative;
-            height: 0;
-            margin: 0 0 0.9rem;
-            pointer-events: none;
-        }
-        .baseline-tick {
-            position: absolute;
-            left: calc(var(--baseline-left) * 1%);
-            top: -29px;
-            width: 2px;
-            height: 12px;
-            background: #0b3b7a;
-            border-radius: 999px;
-            box-shadow: 0 0 0 2px #ffffff;
-            transform: translate(-1px, -50%);
-            z-index: 50;
-        }
-        .baseline-tick::after {
-            content: "";
-            position: absolute;
-            left: 50%;
-            top: -22px;
-            transform: translateX(-50%);
-            background: #172033;
-            color: #ffffff;
-            border-radius: 4px;
-            font-size: 0.68rem;
-            line-height: 1;
-            padding: 0.25rem 0.35rem;
-            opacity: 0;
-            transition: opacity 0.12s ease;
-            white-space: nowrap;
-        }
         </style>
         """,
         unsafe_allow_html=True,
@@ -164,7 +130,14 @@ def page_header(title: str, subtitle: str) -> None:
 
 
 def money(value: float) -> str:
-    return f"${value:,.0f}M"
+    if pd.isna(value):
+        return "n/a"
+
+    sign = "-" if value < 0 else ""
+    value = abs(value)
+    if value >= 1000:
+        return f"{sign}${value / 1000:,.1f}B"
+    return f"{sign}${value:,.0f}M"
 
 
 def pct(value: float) -> str:
@@ -183,19 +156,6 @@ def kpi_card(label: str, value: str, delta: str = "") -> str:
             <div class="kpi-label">{label}</div>
             <div class="kpi-value">{value}</div>
             <div class="kpi-delta">{delta}</div>
-        </div>
-        """
-
-
-def baseline_marker(label: str, min_value: float, max_value: float, baseline_value: float) -> str:
-    if max_value == min_value:
-        position = 0
-    else:
-        position = (baseline_value - min_value) / (max_value - min_value) * 100
-    position = min(max(position, 0), 100)
-    return f"""
-        <div class="baseline-overlay" aria-hidden="true">
-            <div class="baseline-tick" style="--baseline-left: {position:.2f};"></div>
         </div>
         """
 
@@ -225,34 +185,52 @@ def format_financial_table(df: pd.DataFrame, percent_cols: Optional[list[str]] =
 
 
 def line_chart(df: pd.DataFrame, x: str, y: Union[str, list[str]], title: str, y_title: str = "Dollars ($M)"):
-    fig = px.line(df, x=x, y=y, markers=True, title=title)
+    chart_df = df.copy()
+    y_columns = [y] if isinstance(y, str) else y
+    chart_y_title = y_title
+    if y_title == "Dollars ($M)":
+        for col in y_columns:
+            chart_df[col] = chart_df[col] / 1000
+        chart_y_title = "Dollars ($B)"
+
+    fig = px.line(chart_df, x=x, y=y, markers=True, title=title)
     fig.update_layout(
         template="plotly_white",
         margin=dict(l=20, r=20, t=58, b=20),
         legend_title_text="",
-        yaxis_title=y_title,
+        yaxis_title=chart_y_title,
         xaxis_title="",
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="#ffffff",
         font=dict(color="#172033"),
     )
     fig.update_xaxes(showgrid=False)
-    fig.update_yaxes(gridcolor=GRID)
+    fig.update_yaxes(gridcolor=GRID, tickprefix="$" if chart_y_title == "Dollars ($B)" else None, tickformat=",.1f" if chart_y_title == "Dollars ($B)" else None)
     return fig
 
 
 def bar_chart(df: pd.DataFrame, x: str, y: str, color: Optional[str], title: str, y_title: str = "Dollars ($M)"):
-    fig = px.bar(df, x=x, y=y, color=color, title=title, text_auto=".2s")
+    chart_df = df.copy()
+    chart_y_title = y_title
+    text_value = None
+    if y_title == "Dollars ($M)":
+        chart_df[y] = chart_df[y] / 1000
+        chart_df["_display_value"] = chart_df[y].map(lambda value: f"${value:,.1f}B")
+        chart_y_title = "Dollars ($B)"
+        text_value = "_display_value"
+
+    fig = px.bar(df_frame=chart_df, x=x, y=y, color=color, title=title, text=text_value)
     fig.update_layout(
         template="plotly_white",
         margin=dict(l=20, r=20, t=58, b=20),
         legend_title_text="",
-        yaxis_title=y_title,
+        yaxis_title=chart_y_title,
         xaxis_title="",
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="#ffffff",
         font=dict(color="#172033"),
     )
     fig.update_xaxes(showgrid=False)
-    fig.update_yaxes(gridcolor=GRID)
+    fig.update_yaxes(gridcolor=GRID, tickprefix="$" if chart_y_title == "Dollars ($B)" else None, tickformat=",.1f" if chart_y_title == "Dollars ($B)" else None)
+    fig.update_traces(textposition="inside", insidetextanchor="middle", hovertemplate="%{x}<br>%{y:$,.1f}B<extra></extra>" if chart_y_title == "Dollars ($B)" else None)
     return fig

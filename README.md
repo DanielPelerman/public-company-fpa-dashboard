@@ -5,10 +5,10 @@ A professional Streamlit web app that simulates an FP&A operating review and for
 ## What The App Does
 
 - Reviews historical income statement, balance sheet, and cash flow performance
-- Tracks revenue growth, margins, free cash flow, and operating KPIs
+- Tracks revenue growth, gross margin, EBITDA margin, operating margin, free cash flow, and operating KPIs
 - Analyzes revenue by geography, product category, and channel
 - Compares budget vs actual results with variance labels
-- Builds a three-year forecast from editable planning assumptions
+- Builds a 1-10 year forecast from editable planning assumptions and selectable revenue forecast methodologies
 - Runs Bear, Base, Bull, and Custom scenarios
 - Generates rule-based CFO-style management commentary
 
@@ -26,6 +26,7 @@ It demonstrates:
 - KPI tracking
 - Executive communication and management recommendations
 - Dashboard design for finance stakeholders
+- Explainable forecast methodology selection
 
 ## Project Structure
 
@@ -46,6 +47,8 @@ fp&a_project/
 │   ├── data_loader.py
 │   ├── finance.py
 │   └── forecast.py
+├── docs/
+│   └── fpa_quality_review.md
 ├── requirements.txt
 └── README.md
 ```
@@ -76,3 +79,5 @@ To add another company later:
 ## Notes
 
 The included Nike-style dataset is illustrative and designed for portfolio demonstration. It should not be treated as audited financial data or investment research.
+
+See `docs/fpa_quality_review.md` for the FP&A calculation review, forecast methodology rationale, and major quality improvements.
