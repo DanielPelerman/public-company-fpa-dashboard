@@ -9,7 +9,6 @@ from components.ui import (
     GOOD,
     apply_theme,
     bar_chart,
-    baseline_marker,
     format_financial_table,
     kpi_card,
     line_chart,
@@ -173,13 +172,29 @@ ASSUMPTION_CONTROLS = {
 
 
 def reset_assumptions() -> None:
-    for key, baseline in ASSUMPTION_CONTROLS.items():
-        st.session_state[key] = baseline
+    for key in ASSUMPTION_CONTROLS:
+        st.session_state.pop(key, None)
 
 
-def assumption_slider(key: str, label: str, min_value: float, max_value: float, baseline: float, step: float) -> float:
-    value = st.slider(label, min_value, max_value, value=baseline, step=step, key=key)
-    st.markdown(baseline_marker("Baseline", min_value, max_value, baseline), unsafe_allow_html=True)
+def assumption_input(
+    key: str,
+    label: str,
+    min_value: float,
+    max_value: float,
+    baseline: float,
+    step: float,
+    format_string: str = "%.1f",
+) -> float:
+    value = st.number_input(
+        label,
+        min_value=min_value,
+        max_value=max_value,
+        value=baseline,
+        step=step,
+        format=format_string,
+        key=key,
+    )
+    st.caption(f"Baseline: {baseline:{format_string.replace('%', '')}}%")
     return value / 100
 
 
@@ -188,12 +203,12 @@ if active_tab in PLANNING_TABS:
         header_col, button_col = st.columns([4, 1])
         with header_col:
             st.markdown("#### Planning Assumptions")
-            st.caption("Small ticks on each slider show the original planning values while you test upside or downside cases.")
+            st.caption("Enter planning assumptions directly. Use Tab to move forward through fields and Shift+Tab to move backward.")
         with button_col:
             st.button("Reset assumptions", on_click=reset_assumptions, use_container_width=True)
         horizon_col, horizon_spacer = st.columns([1, 3])
         with horizon_col:
-            forecast_years = st.slider(
+            forecast_years = st.number_input(
                 "Forecast horizon",
                 min_value=1,
                 max_value=10,
@@ -206,32 +221,34 @@ if active_tab in PLANNING_TABS:
         row_1 = st.columns(4)
         row_2 = st.columns(3)
         with row_1[0]:
-            revenue_growth = assumption_slider("assumption_revenue_growth", "Revenue growth %", -10.0, 15.0, ASSUMPTION_CONTROLS["assumption_revenue_growth"], 0.5)
+            revenue_growth = assumption_input("assumption_revenue_growth", "Revenue growth (%)", -10.0, 15.0, ASSUMPTION_CONTROLS["assumption_revenue_growth"], 0.5)
         with row_1[1]:
-            gross_margin = assumption_slider("assumption_gross_margin", "Gross margin %", 35.0, 55.0, ASSUMPTION_CONTROLS["assumption_gross_margin"], 0.5)
+            gross_margin = assumption_input("assumption_gross_margin", "Gross margin (%)", 35.0, 55.0, ASSUMPTION_CONTROLS["assumption_gross_margin"], 0.5)
         with row_1[2]:
-            sga_pct = assumption_slider("assumption_sga_pct", "SG&A % of revenue", 20.0, 45.0, ASSUMPTION_CONTROLS["assumption_sga_pct"], 0.5)
+            sga_pct = assumption_input("assumption_sga_pct", "SG&A % of revenue", 20.0, 45.0, ASSUMPTION_CONTROLS["assumption_sga_pct"], 0.5)
         with row_1[3]:
-            tax_rate = assumption_slider("assumption_tax_rate", "Tax rate %", 10.0, 35.0, ASSUMPTION_CONTROLS["assumption_tax_rate"], 0.5)
+            tax_rate = assumption_input("assumption_tax_rate", "Tax rate (%)", 10.0, 35.0, ASSUMPTION_CONTROLS["assumption_tax_rate"], 0.5)
         with row_2[0]:
-            capex_pct = assumption_slider("assumption_capex_pct", "Capex % of revenue", 0.5, 5.0, ASSUMPTION_CONTROLS["assumption_capex_pct"], 0.1)
+            capex_pct = assumption_input("assumption_capex_pct", "Capex % of revenue", 0.5, 5.0, ASSUMPTION_CONTROLS["assumption_capex_pct"], 0.1, "%.2f")
         with row_2[1]:
-            depreciation_pct = assumption_slider(
+            depreciation_pct = assumption_input(
                 "assumption_depreciation_pct",
                 "Depreciation % of revenue",
                 0.5,
                 4.0,
                 ASSUMPTION_CONTROLS["assumption_depreciation_pct"],
                 0.1,
+                "%.2f",
             )
         with row_2[2]:
-            working_capital_pct = assumption_slider(
+            working_capital_pct = assumption_input(
                 "assumption_working_capital_pct",
                 "Working capital change % of revenue",
                 -3.0,
                 4.0,
                 ASSUMPTION_CONTROLS["assumption_working_capital_pct"],
                 0.1,
+                "%.2f",
             )
 
 forecast = build_forecast(
