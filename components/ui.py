@@ -111,6 +111,45 @@ def apply_theme() -> None:
             color: var(--accent);
             border-color: var(--accent);
         }
+        div.stNumberInput {
+            border: 1px solid #d7e2ef;
+            background: #fbfdff;
+            border-radius: 8px;
+            padding: 0.72rem 0.78rem 0.58rem;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.035);
+        }
+        div.stNumberInput:focus-within {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(31, 111, 235, 0.12);
+        }
+        div.stNumberInput label {
+            color: var(--ink);
+            font-weight: 650;
+        }
+        div.stNumberInput [data-baseweb="input"] {
+            border: 1px solid #cbd7e6;
+            background: #ffffff;
+            border-radius: 7px;
+            overflow: hidden;
+            min-height: 2.35rem;
+            margin-top: 0.35rem;
+        }
+        div.stNumberInput input {
+            color: var(--ink);
+            font-weight: 720;
+            font-size: 1rem;
+            padding-left: 0.72rem;
+        }
+        div.stNumberInput button {
+            border-left: 1px solid #dbe4f0;
+            background: #f3f7fc;
+            color: var(--ink);
+            min-width: 2.15rem;
+        }
+        div.stNumberInput button:hover {
+            background: #e8f1ff;
+            color: var(--accent);
+        }
         </style>
         """,
         unsafe_allow_html=True,
