@@ -258,7 +258,7 @@ def bar_chart(df: pd.DataFrame, x: str, y: str, color: Optional[str], title: str
         chart_y_title = "Dollars ($B)"
         text_value = "_display_value"
 
-    fig = px.bar(df_frame=chart_df, x=x, y=y, color=color, title=title, text=text_value)
+    fig = px.bar(data_frame=chart_df, x=x, y=y, color=color, title=title, text=text_value)
     fig.update_layout(
         template="plotly_white",
         margin=dict(l=20, r=20, t=58, b=20),
